@@ -109,6 +109,12 @@ In this app:
 
 ## Suggested Demo Scenarios
 
+Use **Quick workload preset** at the top of the sidebar to load **Healthy**,
+**Overloaded**, or **Optimized**, matching the scenarios below. Each preset also
+sets the random seed to 42 for reproducible comparisons. Presets only fill the
+controls; adjust any values and click **Run Simulation** to update the results.
+The existing results stay visible until you submit.
+
 ### Scenario 1: Healthy System
 
 - Arrival rate: 20 requests/min

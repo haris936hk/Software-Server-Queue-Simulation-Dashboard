@@ -37,6 +37,20 @@ DEFAULT_PARAMS = {
     "random_seed": 42,
 }
 
+WORKLOAD_PRESETS = {
+    "Healthy": {**DEFAULT_PARAMS},
+    "Overloaded": {
+        **DEFAULT_PARAMS,
+        "arrival_rate_per_minute": 35,
+        "number_of_servers": 2,
+    },
+    "Optimized": {
+        **DEFAULT_PARAMS,
+        "arrival_rate_per_minute": 35,
+        "number_of_servers": 4,
+    },
+}
+
 
 def generate_workload(
     arrival_rate_per_minute: int,
@@ -733,48 +747,69 @@ def main() -> None:  # pragma: no cover
     if "active_params" not in st.session_state:
         st.session_state.active_params = DEFAULT_PARAMS.copy()
 
+    for name, value in st.session_state.active_params.items():
+        st.session_state.setdefault(f"control_{name}", value)
+
+    def apply_workload_preset() -> None:
+        preset = st.session_state.workload_preset
+        if preset is not None:
+            for name, value in WORKLOAD_PRESETS[preset].items():
+                st.session_state[f"control_{name}"] = value
+
     st.sidebar.title("Simulation Controls")
+    st.sidebar.selectbox(
+        "Quick workload preset",
+        options=list(WORKLOAD_PRESETS),
+        index=None,
+        placeholder="Choose a workload…",
+        key="workload_preset",
+        on_change=apply_workload_preset,
+    )
+    st.sidebar.caption(
+        "Presets fill the controls below, including seed 42. "
+        "Adjust any value, then click Run Simulation to apply."
+    )
     with st.sidebar.form("simulation_controls"):
         arrival_rate_per_minute = st.slider(
             "Arrival Rate (requests per minute)",
             min_value=1,
             max_value=100,
-            value=int(st.session_state.active_params["arrival_rate_per_minute"]),
+            key="control_arrival_rate_per_minute",
             step=1,
         )
         average_service_time_seconds = st.slider(
             "Average Service Time (seconds per request)",
             min_value=1,
             max_value=30,
-            value=int(st.session_state.active_params["average_service_time_seconds"]),
+            key="control_average_service_time_seconds",
             step=1,
         )
         number_of_servers = st.slider(
             "Number of Server Workers",
             min_value=1,
             max_value=10,
-            value=int(st.session_state.active_params["number_of_servers"]),
+            key="control_number_of_servers",
             step=1,
         )
         simulation_duration_minutes = st.slider(
             "Simulation Duration (minutes)",
             min_value=10,
             max_value=240,
-            value=int(st.session_state.active_params["simulation_duration_minutes"]),
+            key="control_simulation_duration_minutes",
             step=10,
         )
         sla_threshold_seconds = st.slider(
             "SLA Threshold (seconds)",
             min_value=1,
             max_value=60,
-            value=int(st.session_state.active_params["sla_threshold_seconds"]),
+            key="control_sla_threshold_seconds",
             step=1,
         )
         random_seed = st.number_input(
             "Random Seed",
             min_value=1,
             max_value=99999,
-            value=int(st.session_state.active_params["random_seed"]),
+            key="control_random_seed",
             step=1,
         )
         run_clicked = st.form_submit_button("Run Simulation", type="primary")
